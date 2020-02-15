@@ -5,7 +5,6 @@ namespace xtakumatutix\PlayerJoinQuitPopup;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\event\Listener;
-use pocketmine\Player;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 
@@ -14,26 +13,25 @@ Class Main extends PluginBase implements Listener {
     public function onEnable(){
         $this->getLogger()->notice("Hello World");
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        $config = new Config($this->getDataFolder() . "config.yml", Config::YAML, [
+        $this->config = new Config($this->getDataFolder() . "config.yml", Config::YAML, [
             "Joinの時" => "§b{name}§eさんが参加しました！！",
             "Quitの時" => "§b{name}§eさんが退出しました！！"
         ]);
     }
 
-    public function OnJoin(PlayerJoinEvent $event){
-        $this->config = new Config($this->getDataFolder() . "config.yml", Config::YAML);
-        $player =$event->getPlayer();
-        $join =$this->config->get("Joinの時");
-        $join = str_replace("{name}",$player->getName(), $join);
+    public function onJoin(PlayerJoinEvent $event): void {
         $event->setJoinMessage("");
-        $this->getServer()->broadcastPopup($join);
+        $this->sendPopup($event, $this->config->get("Joinの時"));
     }
-        public function OnQuit(PlayerQuitEvent $event){
-        $this->config = new Config($this->getDataFolder() . "config.yml", Config::YAML);
-        $player =$event->getPlayer();
-        $quit =$this->config->get("Quitの時");
-        $quit = str_replace("{name}",$player->getName(), $quit);
+
+    public function onQuit(PlayerQuitEvent $event): void {
         $event->setQuitMessage("");
-        $this->getServer()->broadcastPopup($quit);
+        $this->sendPopup($event, $this->config->get("Quitの時"));
+    }
+
+    private function sendPopup(PlayerEvent $event, string $message): void {
+        $player = $event->getPlayer();
+        $message = str_replace("{name}",$player->getName(), $message);
+        $this->getServer()->broadcastPopup($message);
     }
 }
